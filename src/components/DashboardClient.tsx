@@ -114,7 +114,7 @@ export default function DashboardClient({
         createViewWeek(),
         createViewDay(),
       ],
-      defaultView: createViewMonthAgenda().name,
+      defaultView: createViewDay().name,
       events,
       callbacks: {
         onEventClick: (event) => {
