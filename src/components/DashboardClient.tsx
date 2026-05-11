@@ -1,9 +1,12 @@
 "use client";
 
+import "temporal-polyfill/global";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScheduleXCalendar, useNextCalendarApp } from "@schedule-x/react";
 import {
   createViewDay,
+  createViewMonthAgenda,
   createViewMonthGrid,
   createViewWeek,
 } from "@schedule-x/calendar";
@@ -40,22 +43,29 @@ function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function dateToSxString(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 function addMinutes(date: Date, min: number): Date {
   return new Date(date.getTime() + min * 60_000);
 }
 
-function appointmentToEvent(appt: AppointmentWithDog) {
+function dateToZdt(date: Date, timeZone: string) {
+  return Temporal.ZonedDateTime.from({
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+    timeZone,
+  });
+}
+
+function appointmentToEvent(appt: AppointmentWithDog, timeZone: string) {
   return {
-    id: String(appt.id),
+    id: appt.id,
     title: appt.service
       ? `${appt.dog.name} — ${appt.service}`
       : appt.dog.name,
-    start: dateToSxString(appt.startsAt),
-    end: dateToSxString(addMinutes(appt.startsAt, appt.durationMin)),
+    start: dateToZdt(appt.startsAt, timeZone),
+    end: dateToZdt(addMinutes(appt.startsAt, appt.durationMin), timeZone),
   };
 }
 
@@ -81,19 +91,31 @@ export default function DashboardClient({
   const apptsRef = useRef(appointments);
   apptsRef.current = appointments;
 
+  const timeZone = useMemo(
+    () =>
+      typeof Intl !== "undefined"
+        ? Intl.DateTimeFormat().resolvedOptions().timeZone
+        : "UTC",
+    [],
+  );
+
   const events = useMemo(
-    () => appointments.map(appointmentToEvent),
-    [appointments],
+    () => appointments.map((a) => appointmentToEvent(a, timeZone)),
+    [appointments, timeZone],
   );
 
   const calendar = useNextCalendarApp(
     {
       locale: "pt-BR",
-      views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
-      defaultView: createViewWeek().name,
-      // Cast: Schedule-X types want Temporal objects, but runtime accepts
-      // "YYYY-MM-DD HH:mm" strings (and that's what we use).
-      events: events as unknown as never,
+      timezone: timeZone as never,
+      views: [
+        createViewMonthAgenda(),
+        createViewMonthGrid(),
+        createViewWeek(),
+        createViewDay(),
+      ],
+      defaultView: createViewMonthAgenda().name,
+      events,
       callbacks: {
         onEventClick: (event) => {
           const id = Number(event.id);
@@ -114,12 +136,14 @@ export default function DashboardClient({
         },
         onEventUpdate: async (event) => {
           const id = Number(event.id);
-          const startStr = String(event.start);
-          const isoLocal = startStr.length >= 16
-            ? `${startStr.slice(0, 10)}T${startStr.slice(11, 16)}:00`
-            : startStr;
-          const dt = new Date(isoLocal);
-          if (!Number.isNaN(dt.getTime())) {
+          const start = event.start;
+          let dt: Date | null = null;
+          if (start instanceof Temporal.ZonedDateTime) {
+            dt = new Date(start.epochMilliseconds);
+          } else if (start instanceof Temporal.PlainDate) {
+            dt = new Date(start.year, start.month - 1, start.day);
+          }
+          if (dt && !Number.isNaN(dt.getTime())) {
             await rescheduleAppointment(id, dt.toISOString());
           }
         },
@@ -131,7 +155,7 @@ export default function DashboardClient({
   // Sync events when props change (e.g. after revalidatePath refresh)
   useEffect(() => {
     if (!calendar) return;
-    calendar.events.set(events as unknown as never);
+    calendar.events.set(events);
   }, [calendar, events]);
 
   const closeModal = () => setModal({ type: "none" });
@@ -155,7 +179,7 @@ export default function DashboardClient({
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-2 sm:p-3">
+      <div className="bg-white rounded-2xl border border-gray-100 p-1 sm:p-3 h-[calc(100dvh-220px)] min-h-[480px]">
         <ScheduleXCalendar calendarApp={calendar} />
       </div>
 
