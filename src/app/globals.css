@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #f7fafa;
+  color: #0a2a2a;
+  min-height: 100%;
+}
+
+.fc .fc-button-primary {
+  background-color: #06b6a4 !important;
+  border-color: #06b6a4 !important;
+}
+.fc .fc-button-primary:hover {
+  background-color: #039285 !important;
+  border-color: #039285 !important;
+}
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: #06746b !important;
+  border-color: #06746b !important;
+}
+.fc .fc-today-button {
+  text-transform: capitalize;
+}
