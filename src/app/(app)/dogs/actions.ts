@@ -6,6 +6,7 @@ import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { parseEurToCents } from "@/lib/money";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "dogs");
 
@@ -131,19 +132,14 @@ export async function createVisit(
   formData: FormData,
 ) {
   const dateRaw = String(formData.get("date") ?? "").trim();
-  const valueRaw = String(formData.get("value") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (!dateRaw) return { error: "Data é obrigatória." };
   const date = new Date(`${dateRaw}T00:00:00`);
   if (Number.isNaN(date.getTime())) return { error: "Data inválida." };
 
-  if (!valueRaw) return { error: "Valor é obrigatório." };
-  const valueNum = Number.parseFloat(valueRaw.replace(",", "."));
-  if (Number.isNaN(valueNum) || valueNum < 0) {
-    return { error: "Valor inválido." };
-  }
-  const valueCents = Math.round(valueNum * 100);
+  const valueCents = parseEurToCents(formData.get("value"));
+  if (valueCents === null) return { error: "Valor inválido." };
 
   await prisma.visit.create({
     data: { dogId, date, valueCents, notes: notes || null },

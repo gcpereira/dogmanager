@@ -26,8 +26,9 @@ model Dog {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  visits Visit[]
-  photos Photo[]
+  visits       Visit[]
+  photos       Photo[]
+  appointments Appointment[]
 }
 
 model Visit {
@@ -50,4 +51,16 @@ model Photo {
   createdAt DateTime @default(now())
 
   @@index([dogId, createdAt])
+}
+
+model Appointment {
+  id          Int      @id @default(autoincrement())
+  dogId       Int
+  dog         Dog      @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  startsAt    DateTime
+  durationMin Int      @default(60)
+  service     String?
+  createdAt   DateTime @default(now())
+
+  @@index([startsAt])
 }

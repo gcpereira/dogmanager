@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createVisit, deleteVisit } from "@/app/(app)/dogs/actions";
+import { formatEur } from "@/lib/money";
 
 type Visit = {
   id: number;
@@ -9,11 +10,6 @@ type Visit = {
   valueCents: number;
   notes: string | null;
 };
-
-const eur = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-});
 
 const dateFmt = new Intl.DateTimeFormat("es-ES", {
   day: "2-digit",
@@ -152,7 +148,7 @@ export default function VisitsSection({
                   </span>
                   <span className="text-gray-300">·</span>
                   <span className="font-semibold text-brand-700">
-                    {eur.format(v.valueCents / 100)}
+                    {formatEur(v.valueCents)}
                   </span>
                 </div>
                 {v.notes && (

@@ -1,18 +1,19 @@
-import Calendar from "@/components/Calendar";
+import { prisma } from "@/lib/db";
+import DashboardClient from "@/components/DashboardClient";
 
-export default function DashboardPage() {
-  return (
-    <div>
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold text-gray-800">Agenda</h1>
-        <p className="text-sm text-gray-500">
-          Gerencie marcações em breve. Por enquanto, o calendário é apenas visual.
-        </p>
-      </div>
+export const dynamic = "force-dynamic";
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4">
-        <Calendar />
-      </div>
-    </div>
-  );
+export default async function DashboardPage() {
+  const [appointments, dogs] = await Promise.all([
+    prisma.appointment.findMany({
+      orderBy: { startsAt: "asc" },
+      include: { dog: { select: { id: true, name: true } } },
+    }),
+    prisma.dog.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
+
+  return <DashboardClient appointments={appointments} dogs={dogs} />;
 }
