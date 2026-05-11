@@ -34,5 +34,5 @@ UPDATE User SET passwordHash = '<hash-gerado>' WHERE username = 'fabi';
 
 ## Deploy
 
-- **Railway/Fly** funciona com SQLite + volume persistente em `prisma/dev.db`.
-- **Vercel** não funciona com SQLite (filesystem efêmero). Para usar a Vercel, troque o `provider` do `schema.prisma` para `postgresql` e use Neon/Supabase/Turso.
+- **Railway/Fly** funciona com SQLite + volume persistente. Precisa montar volumes em **dois** caminhos: `prisma/dev.db` (banco) e `public/uploads/` (fotos enviadas).
+- **Vercel** não funciona — filesystem efêmero quebra tanto o SQLite quanto o storage de fotos. Pra usar a Vercel, troque o `provider` do `schema.prisma` para `postgresql` (Neon/Supabase/Turso) e o storage das fotos pra um object storage (Cloudflare R2, S3, etc).

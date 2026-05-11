@@ -25,4 +25,29 @@ model Dog {
   behaviorNotes String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  visits Visit[]
+  photos Photo[]
+}
+
+model Visit {
+  id         Int      @id @default(autoincrement())
+  dogId      Int
+  dog        Dog      @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  date       DateTime
+  valueCents Int
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@index([dogId, date])
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  dogId     Int
+  dog       Dog      @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  filename  String
+  createdAt DateTime @default(now())
+
+  @@index([dogId, createdAt])
 }

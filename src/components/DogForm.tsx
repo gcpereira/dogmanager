@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import PhoneInput from "./PhoneInput";
 
 type Dog = {
   id?: number;
@@ -55,16 +56,36 @@ export default function DogForm({
         </Field>
 
         <Field label="Gênero" required>
-          <select
-            name="gender"
-            required
-            defaultValue={dog?.gender ?? ""}
-            className={inputClass}
-          >
-            <option value="" disabled>Selecione</option>
-            <option value="Macho">Macho</option>
-            <option value="Fêmea">Fêmea</option>
-          </select>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="gender"
+                value="Macho"
+                required
+                defaultChecked={dog?.gender === "Macho"}
+                className="peer sr-only"
+              />
+              <span className="flex items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium border-blue-200 bg-blue-50 text-blue-700 peer-checked:border-blue-500 peer-checked:bg-blue-500 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-blue-300 transition">
+                <span className="text-base leading-none">♂</span>
+                Macho
+              </span>
+            </label>
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="gender"
+                value="Fêmea"
+                required
+                defaultChecked={dog?.gender === "Fêmea"}
+                className="peer sr-only"
+              />
+              <span className="flex items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium border-pink-200 bg-pink-50 text-pink-700 peer-checked:border-pink-500 peer-checked:bg-pink-500 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-pink-300 transition">
+                <span className="text-base leading-none">♀</span>
+                Fêmea
+              </span>
+            </label>
+          </div>
         </Field>
       </div>
 
@@ -78,15 +99,7 @@ export default function DogForm({
       </Field>
 
       <Field label="Telefone do tutor" required>
-        <input
-          name="tutorPhone"
-          type="tel"
-          required
-          inputMode="tel"
-          placeholder="(11) 99999-9999"
-          defaultValue={dog?.tutorPhone ?? ""}
-          className={inputClass}
-        />
+        <PhoneInput name="tutorPhone" defaultValue={dog?.tutorPhone} required />
       </Field>
 
       <Field label="Alergias">

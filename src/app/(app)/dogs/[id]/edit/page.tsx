@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DogForm from "@/components/DogForm";
+import VisitsSection from "@/components/VisitsSection";
+import PhotosSection from "@/components/PhotosSection";
 import { prisma } from "@/lib/db";
 import { updateDog, deleteDog } from "../../actions";
 import DeleteButton from "./DeleteButton";
@@ -14,15 +16,27 @@ export default async function EditDogPage({
   const id = Number.parseInt(idStr, 10);
   if (Number.isNaN(id)) notFound();
 
-  const dog = await prisma.dog.findUnique({ where: { id } });
+  const dog = await prisma.dog.findUnique({
+    where: { id },
+    include: {
+      visits: {
+        orderBy: { date: "desc" },
+        select: { id: true, date: true, valueCents: true, notes: true },
+      },
+      photos: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, filename: true },
+      },
+    },
+  });
   if (!dog) notFound();
 
   const updateAction = updateDog.bind(null, id);
   const deleteAction = deleteDog.bind(null, id);
 
   return (
-    <div>
-      <div className="mb-4">
+    <div className="space-y-4">
+      <div>
         <Link href="/dogs" className="text-sm text-brand-600 hover:underline">
           ← Voltar
         </Link>
@@ -33,7 +47,11 @@ export default async function EditDogPage({
         <DogForm dog={dog} action={updateAction} submitLabel="Salvar alterações" />
       </div>
 
-      <div className="mt-4 bg-white rounded-2xl border border-red-100 p-4">
+      <VisitsSection dogId={id} visits={dog.visits} />
+
+      <PhotosSection dogId={id} photos={dog.photos} />
+
+      <div className="bg-white rounded-2xl border border-red-100 p-4">
         <h2 className="text-sm font-semibold text-red-700 mb-2">Zona de perigo</h2>
         <form action={deleteAction}>
           <DeleteButton dogName={dog.name} />
