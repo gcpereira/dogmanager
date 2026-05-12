@@ -1,16 +1,17 @@
 # DogManager
 
-Sistema simples para gerenciar cachorros clientes (Next.js 15 + Prisma + SQLite + Tailwind).
+Sistema simples para gerenciar cachorros clientes (Next.js 15 + Prisma + Postgres/Neon + Tailwind).
 
 ## Setup
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env
+# preencha DATABASE_URL (pooled) e DIRECT_URL (unpooled) com as URLs do Neon
 # edite SESSION_PASSWORD com pelo menos 32 caracteres (openssl rand -base64 32)
-npx prisma migrate dev --name init
-npm run db:seed
-npm run dev
+pnpm prisma migrate dev --name init
+pnpm db:seed
+pnpm dev
 ```
 
 Acesse http://localhost:3000 e faça login com:
@@ -34,5 +35,6 @@ UPDATE User SET passwordHash = '<hash-gerado>' WHERE username = 'fabi';
 
 ## Deploy
 
-- **Railway/Fly** funciona com SQLite + volume persistente. Precisa montar volumes em **dois** caminhos: `prisma/dev.db` (banco) e `public/uploads/` (fotos enviadas).
-- **Vercel** não funciona — filesystem efêmero quebra tanto o SQLite quanto o storage de fotos. Pra usar a Vercel, troque o `provider` do `schema.prisma` para `postgresql` (Neon/Supabase/Turso) e o storage das fotos pra um object storage (Cloudflare R2, S3, etc).
+- **Vercel**: configure `DATABASE_URL` (pooled, com `-pooler` no host), `DIRECT_URL` (unpooled) e `SESSION_PASSWORD` em Project Settings → Environment Variables. O cliente Prisma usa o `@prisma/adapter-neon` (WebSocket) pra não estourar conexões em serverless.
+- **Storage de fotos** (`public/uploads/`) ainda usa filesystem local — na Vercel o filesystem é efêmero, então antes do primeiro deploy troque pra object storage (Cloudflare R2, S3, Vercel Blob, etc).
+- **Railway/Fly**: também funcionam apontando pro Neon; só precisam de volume pra `public/uploads/` enquanto o storage de fotos não for migrado.
