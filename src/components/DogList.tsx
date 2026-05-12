@@ -8,8 +8,8 @@ type Dog = {
   name: string;
   age: number | null;
   gender: string;
-  tutorName: string;
-  tutorPhone: string;
+  tutorName: string | null;
+  tutorPhone: string | null;
 };
 
 function normalize(s: string) {
@@ -27,7 +27,8 @@ export default function DogList({ dogs }: { dogs: Dog[] }) {
     if (!q) return dogs;
     return dogs.filter(
       (d) =>
-        normalize(d.name).includes(q) || normalize(d.tutorName).includes(q),
+        normalize(d.name).includes(q) ||
+        normalize(d.tutorName ?? "").includes(q),
     );
   }, [dogs, query]);
 
@@ -94,10 +95,16 @@ export default function DogList({ dogs }: { dogs: Dog[] }) {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1 truncate">
-                      Tutor: {dog.tutorName}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">{dog.tutorPhone}</p>
+                    {dog.tutorName && (
+                      <p className="text-sm text-gray-600 mt-1 truncate">
+                        Tutor: {dog.tutorName}
+                      </p>
+                    )}
+                    {dog.tutorPhone && (
+                      <p className="text-sm text-gray-500 truncate">
+                        {dog.tutorPhone}
+                      </p>
+                    )}
                   </div>
                   <span className="text-gray-300 text-xl shrink-0">›</span>
                 </div>

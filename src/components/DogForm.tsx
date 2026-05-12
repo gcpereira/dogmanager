@@ -9,8 +9,8 @@ type Dog = {
   name?: string;
   age?: number | null;
   gender?: string;
-  tutorName?: string;
-  tutorPhone?: string;
+  tutorName?: string | null;
+  tutorPhone?: string | null;
   allergies?: string | null;
   behaviorNotes?: string | null;
 };
@@ -89,17 +89,16 @@ export default function DogForm({
         </Field>
       </div>
 
-      <Field label="Nome do tutor" required>
+      <Field label="Nome do tutor">
         <input
           name="tutorName"
-          required
           defaultValue={dog?.tutorName ?? ""}
           className={inputClass}
         />
       </Field>
 
-      <Field label="Telefone do tutor" required>
-        <PhoneInput name="tutorPhone" defaultValue={dog?.tutorPhone} required />
+      <Field label="Telefone do tutor">
+        <PhoneInput name="tutorPhone" defaultValue={dog?.tutorPhone} />
       </Field>
 
       <Field label="Alergias">

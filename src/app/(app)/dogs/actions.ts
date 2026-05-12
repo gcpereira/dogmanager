@@ -14,8 +14,8 @@ type DogInput = {
   name: string;
   age: number | null;
   gender: string;
-  tutorName: string;
-  tutorPhone: string;
+  tutorName: string | null;
+  tutorPhone: string | null;
   allergies: string | null;
   behaviorNotes: string | null;
 };
@@ -31,8 +31,6 @@ function parseForm(formData: FormData): { data?: DogInput; error?: string } {
 
   if (!name) return { error: "Nome é obrigatório." };
   if (!gender) return { error: "Gênero é obrigatório." };
-  if (!tutorName) return { error: "Nome do tutor é obrigatório." };
-  if (!tutorPhone) return { error: "Telefone do tutor é obrigatório." };
 
   const age = ageRaw ? Number.parseInt(ageRaw, 10) : null;
   if (ageRaw && Number.isNaN(age!)) {
@@ -44,8 +42,8 @@ function parseForm(formData: FormData): { data?: DogInput; error?: string } {
       name,
       age,
       gender,
-      tutorName,
-      tutorPhone,
+      tutorName: tutorName || null,
+      tutorPhone: tutorPhone || null,
       allergies: allergies || null,
       behaviorNotes: behaviorNotes || null,
     },

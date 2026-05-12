@@ -21,8 +21,8 @@ model Dog {
   name          String
   age           Int?
   gender        String
-  tutorName     String
-  tutorPhone    String
+  tutorName     String?
+  tutorPhone    String?
   allergies     String?
   behaviorNotes String?
   createdAt     DateTime @default(now())
