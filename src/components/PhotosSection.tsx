@@ -49,18 +49,24 @@ export default function PhotosSection({
   }, [active]);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
     setError(null);
     setPending(true);
+    let firstError: string | null = null;
     try {
-      const compressed = await compressImage(file);
-      const fd = new FormData();
-      fd.append("photo", compressed);
-      const result = await uploadPhoto(dogId, undefined, fd);
-      if (result?.error) setError(result.error);
-    } catch {
-      setError("Erro ao processar imagem.");
+      for (const file of files) {
+        try {
+          const compressed = await compressImage(file);
+          const fd = new FormData();
+          fd.append("photo", compressed);
+          const result = await uploadPhoto(dogId, undefined, fd);
+          if (result?.error && !firstError) firstError = result.error;
+        } catch {
+          if (!firstError) firstError = "Erro ao processar imagem.";
+        }
+      }
+      if (firstError) setError(firstError);
     } finally {
       setPending(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -89,7 +95,7 @@ export default function PhotosSection({
           ref={inputRef}
           type="file"
           accept="image/*"
-          capture="environment"
+          multiple
           className="hidden"
           onChange={handleChange}
         />
