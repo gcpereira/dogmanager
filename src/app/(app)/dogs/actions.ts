@@ -1,14 +1,11 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
-import { mkdir, writeFile, unlink } from "node:fs/promises";
-import path from "node:path";
+import { put, del } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { parseEurToCents } from "@/lib/money";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "dogs");
 
 type DogInput = {
   name: string;
@@ -76,13 +73,11 @@ export async function updateDog(
 export async function deleteDog(id: number) {
   const photos = await prisma.photo.findMany({
     where: { dogId: id },
-    select: { filename: true },
+    select: { url: true },
   });
   await prisma.dog.delete({ where: { id } });
   await Promise.all(
-    photos.map((p) =>
-      unlink(path.join(UPLOAD_DIR, p.filename)).catch(() => {}),
-    ),
+    photos.map((p) => del(p.url).catch(() => {})),
   );
   revalidatePath("/dogs");
   redirect("/dogs");
@@ -104,14 +99,13 @@ export async function uploadPhoto(
     return { error: "Formato não suportado." };
   }
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  const filename = `${randomBytes(12).toString("hex")}.jpg`;
-  await writeFile(
-    path.join(UPLOAD_DIR, filename),
-    Buffer.from(await file.arrayBuffer()),
-  );
+  const key = `dogs/${dogId}/${randomBytes(12).toString("hex")}.jpg`;
+  const blob = await put(key, file, {
+    access: "public",
+    contentType: file.type,
+  });
 
-  await prisma.photo.create({ data: { dogId, filename } });
+  await prisma.photo.create({ data: { dogId, url: blob.url } });
   revalidatePath(`/dogs/${dogId}/edit`);
   return { ok: true };
 }
@@ -120,7 +114,7 @@ export async function deletePhoto(photoId: number, dogId: number) {
   const photo = await prisma.photo.findUnique({ where: { id: photoId } });
   if (!photo) return;
   await prisma.photo.delete({ where: { id: photoId } });
-  await unlink(path.join(UPLOAD_DIR, photo.filename)).catch(() => {});
+  await del(photo.url).catch(() => {});
   revalidatePath(`/dogs/${dogId}/edit`);
 }
 

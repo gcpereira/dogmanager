@@ -49,7 +49,7 @@ model Photo {
   id        Int      @id @default(autoincrement())
   dogId     Int
   dog       Dog      @relation(fields: [dogId], references: [id], onDelete: Cascade)
-  filename  String
+  url       String
   createdAt DateTime @default(now())
 
   @@index([dogId, createdAt])

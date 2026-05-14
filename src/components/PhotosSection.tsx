@@ -5,7 +5,7 @@ import { uploadPhoto, deletePhoto } from "@/app/(app)/dogs/actions";
 
 type Photo = {
   id: number;
-  filename: string;
+  url: string;
 };
 
 async function compressImage(file: File): Promise<File> {
@@ -129,7 +129,7 @@ export default function PhotosSection({
                 className="block w-full h-full rounded-lg overflow-hidden bg-gray-100 active:scale-[0.98] transition"
               >
                 <img
-                  src={`/uploads/dogs/${photo.filename}`}
+                  src={photo.url}
                   alt=""
                   className="w-full h-full object-cover"
                 />
@@ -160,7 +160,7 @@ export default function PhotosSection({
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out"
         >
           <img
-            src={`/uploads/dogs/${active.filename}`}
+            src={active.url}
             alt=""
             className="max-w-full max-h-full object-contain"
           />

@@ -25,7 +25,7 @@ export default async function EditDogPage({
       },
       photos: {
         orderBy: { createdAt: "desc" },
-        select: { id: true, filename: true },
+        select: { id: true, url: true },
       },
     },
   });
