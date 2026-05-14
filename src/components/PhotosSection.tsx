@@ -10,7 +10,7 @@ type Photo = {
 
 async function compressImage(file: File): Promise<File> {
   const bitmap = await createImageBitmap(file);
-  const maxDim = 1600;
+  const maxDim = 2560;
   const ratio = Math.min(maxDim / bitmap.width, maxDim / bitmap.height, 1);
   const w = Math.round(bitmap.width * ratio);
   const h = Math.round(bitmap.height * ratio);
@@ -21,7 +21,7 @@ async function compressImage(file: File): Promise<File> {
   if (!ctx) throw new Error("canvas indisponível");
   ctx.drawImage(bitmap, 0, 0, w, h);
   const blob: Blob | null = await new Promise((res) =>
-    canvas.toBlob((b) => res(b), "image/jpeg", 0.82),
+    canvas.toBlob((b) => res(b), "image/jpeg", 0.92),
   );
   if (!blob) throw new Error("falha ao gerar imagem");
   return new File([blob], "photo.jpg", { type: "image/jpeg" });
@@ -56,14 +56,26 @@ export default function PhotosSection({
     let firstError: string | null = null;
     try {
       for (const file of files) {
+        let toUpload: File;
         try {
-          const compressed = await compressImage(file);
+          toUpload = await compressImage(file);
+        } catch (err) {
+          console.warn(
+            `Compressão falhou para ${file.name} (${file.type || "tipo desconhecido"}), enviando original.`,
+            err,
+          );
+          toUpload = file;
+        }
+        try {
           const fd = new FormData();
-          fd.append("photo", compressed);
+          fd.append("photo", toUpload);
           const result = await uploadPhoto(dogId, undefined, fd);
-          if (result?.error && !firstError) firstError = result.error;
-        } catch {
-          if (!firstError) firstError = "Erro ao processar imagem.";
+          if (result?.error && !firstError) {
+            firstError = `${file.name}: ${result.error}`;
+          }
+        } catch (err) {
+          console.error(`Upload falhou para ${file.name}:`, err);
+          if (!firstError) firstError = `Erro ao enviar ${file.name}.`;
         }
       }
       if (firstError) setError(firstError);
